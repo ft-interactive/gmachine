@@ -1,0 +1,11 @@
+{
+  "name": "gmachine",
+  "description": "Web app to grab images of the internet and resize, crop and compress them",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.x",
+    "gm": "1.5.1",
+    "request": "2.11.x"
+  }
+}
