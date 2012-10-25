@@ -7,5 +7,9 @@
     "express": "3.x",
     "gm": "1.5.1",
     "request": "2.11.x"
+  },
+  "engines": {
+    "node": "0.8.x",
+    "npm": "1.1.x"
   }
 }
