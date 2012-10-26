@@ -74,4 +74,5 @@ app.get('/:width/:height', function(req, res){
 
 });
 
+app.enable('trust proxy');
 app.listen( program.port );
