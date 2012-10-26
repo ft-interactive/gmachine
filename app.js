@@ -16,7 +16,9 @@ program
 var engine = program.imagemagick ? gm.subClass({ imageMagick: true }) : gm,
 	startTime = Date.now(),
 	tmpDir = 'tmp/' + program.port + '-' + startTime,
-	imagesToDelete = [];
+	imagesToDelete = [],
+	expires,
+	lastModified = new Date('Jan 01, 2012');
 
 try{
 	fs.mkdirSync( 'tmp', 0755 );
@@ -49,6 +51,11 @@ app.get('/:width/:height', function(req, res){
 
 		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
 			res.type('jpeg');
+			res.set({
+					'Expires': expires,
+					'Cache-Control': 'public',
+					'Last-Modified': lastModified
+				});
 			stdout.on( 'close', function(){
 				imagesToDelete.push( tmpFileName );
 			});
@@ -60,6 +67,15 @@ app.get('/:width/:height', function(req, res){
 function getRandomFileName() {
 	return Math.floor(Math.random(100) * 10000).toString() + Date.now().toString();
 }
+
+function updateExpires() {
+	// 1 year. More than that much in the future and it violates the RFC guidelines
+	expires = new Date(Date.now() + 31536000 );
+}
+
+updateExpires();
+
+setInterval(updateExpires(), 3600000 /* every hour */);
 
 function deleteFile( filename ) {
 	fs.unlink( filename, function ( err ) {
@@ -89,3 +105,10 @@ setInterval(function(){
 
 app.enable('trust proxy');
 app.listen( program.port );
+
+/* 
+
+Related Links:
+
+https://developers.google.com/speed/docs/best-practices/caching
+*/
