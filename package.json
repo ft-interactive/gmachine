@@ -6,7 +6,8 @@
   "dependencies": {
     "express": "3.x",
     "gm": "1.5.1",
-    "request": "2.11.x"
+    "request": "2.11.x",
+    "commander":"1.0.5"
   },
   "engines": {
     "node": "0.8.x",

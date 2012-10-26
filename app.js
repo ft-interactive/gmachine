@@ -1,11 +1,19 @@
+#!/usr/bin/env node
+
 var express = require('express'),
 	app = express(),
 	fs = require('fs'),
 	gm = require('gm'),
-	request = require('request');
+	request = require('request'),
+	program = require('commander');
+
+program
+  .version('0.0.1')
+  .option('-p, --port <n>', 'Set the port number', parseInt, 3000)
+  .parse(process.argv);
 
 var startTime = Date.now(),
-	tmpDir = 'tmp/' + startTime;
+	tmpDir = 'tmp/' + program.port + '-' + startTime;
 
 try{
 	fs.mkdirSync('tmp', 0755);
@@ -22,14 +30,15 @@ try{
 app.get('/:width/:height', function(req, res){
 
 	var params = req.params,
-		tmpFileName = [tmpDir,'/', new Buffer(req.query.url).toString('base64'), '.jpg'].join('');
+		query = req.query,
+		tmpFileName = [tmpDir,'/', new Buffer(req.query.url).toString('base64'), '.jpg'].join( '' );
 
 	request( req.query.url ).pipe(fs.createWriteStream(tmpFileName).on('close', function(){
 
 		var img = gm(fs.createReadStream(tmpFileName));
 
-		if (req.query.crop) {
-			var cropVals = req.query.crop.split(',');
+		if ( query.crop ) {
+			var cropVals = query.crop.split(',');
 			img = img.crop(cropVals[0], cropVals[1], cropVals[2], cropVals[3]);
 		}
 
@@ -55,4 +64,4 @@ app.get('/:width/:height', function(req, res){
 
 });
 
-app.listen(3000);
+app.listen( program.port );
