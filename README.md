@@ -3,6 +3,8 @@ gMachine
 
 A node app to grab images from the internet and resize, crop and compress them. Uses GraphicsMagick (default) or Imagemagick.
 
+[Demo App](http://gmachine-demo.herokuapp.com/0/300?crop=190,190,115,100&url=http://assets.github.com/images/gravatars/gravatar-org-420.png)
+
 Installation
 ------------
 
