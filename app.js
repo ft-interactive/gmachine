@@ -44,9 +44,13 @@ app.get('/:width/:height', function(req, res){
 
 		var img = engine(fs.createReadStream(tmpFileName));
 
+		if ( query.m === undefined ) {
+			img.noProfile();
+		}
+
 		if ( query.crop ) {
 			var cropVals = query.crop.split(',');
-			img = img.crop(cropVals[0], cropVals[1], cropVals[2], cropVals[3]);
+			img.crop(cropVals[0], cropVals[1], cropVals[2], cropVals[3]);
 		}
 
 		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
