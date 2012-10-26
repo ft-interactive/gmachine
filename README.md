@@ -33,6 +33,12 @@ __Options__
 * `-p --port` Set the port number. Defaults to 3000. On Heroku the port will be entered via `process.env.PORT`
 * `-i --imagemagick` Use ImageMagick instead GraphicsMagick
 
+__Heroku__
+
+To deploy to heroku copy and pastet the following into a terminal 
+
+	$ git clone https://github.com/ft-interactive/gmachine.git; cd gmachine; heroku create; git push heroku master
+
 __TODO__
 
 * JPEGs only - early days proof-of-concept at the moment.
