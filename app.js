@@ -52,9 +52,9 @@ app.get('/:width/:height', function(req, res){
 		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
 			res.type('jpeg');
 			res.set({
-					'Expires': expires,
-					'Cache-Control': 'public',
-					'Last-Modified': lastModified
+					'Expires': expires.toUTCString(),
+					'Cache-Control': 'public, max-age=31536000',
+					'Last-Modified': lastModified.toUTCString()
 				});
 			stdout.on( 'close', function(){
 				imagesToDelete.push( tmpFileName );
@@ -70,7 +70,7 @@ function getRandomFileName() {
 
 function updateExpires() {
 	// 1 year. More than that much in the future and it violates the RFC guidelines
-	expires = new Date(Date.now() + 31536000 );
+	expires = new Date(Date.now() + 31536000000 );
 }
 
 updateExpires();
