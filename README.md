@@ -36,7 +36,9 @@ and will crop a 100px x 100px square at coordinates x=250px, y=150px. The croppe
 
 `crop` is an optional param. To crop without resizing, set the the resize dimensions to 0.
 
-Add an `m` param with any value to retain Exif. All metadata is removed by default.
+Add an optional `cm=20` query param to set jpeg compression to 20. Value should be between 0-100. Defaults to 80.
+
+Add an optional `m` query param with any value to retain Exif. All metadata is removed by default.
 
 
 Start-up Options
@@ -49,7 +51,7 @@ Start-up Options
 Deploying to Heroku
 -------------------
 
-To deploy to heroku copy and pastet the following into a terminal 
+To deploy to heroku copy and paste the following into a terminal 
 
 	$ git clone https://github.com/ft-interactive/gmachine.git; cd gmachine; heroku create; git push heroku master
 

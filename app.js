@@ -42,11 +42,14 @@ app.get('/:width/:height', function(req, res){
 
 	request( req.query.url ).pipe(fs.createWriteStream(tmpFileName).on('close', function(){
 
-		var img = engine(fs.createReadStream(tmpFileName));
+		var quality = query.cm === undefined || isNaN(parseInt(query.cm)) ?  80 : parseInt(query.cm);
+		var img = engine(fs.createReadStream(tmpFileName)).quality( quality );
 
 		if ( query.m === undefined ) {
 			img.noProfile();
 		}
+
+
 
 		if ( query.crop ) {
 			var cropVals = query.crop.split(',');
@@ -56,7 +59,7 @@ app.get('/:width/:height', function(req, res){
 		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
 			res.type('jpeg');
 			res.set({
-					'Expires': expires.toUTCString(),
+					'Expires': expires,
 					'Cache-Control': 'public, max-age=31536000',
 					'Last-Modified': lastModified.toUTCString()
 				});
@@ -74,7 +77,7 @@ function getRandomFileName() {
 
 function updateExpires() {
 	// 1 year. More than that much in the future and it violates the RFC guidelines
-	expires = new Date(Date.now() + 31536000000 );
+	expires = new Date(Date.now() + 31536000000 ).toUTCString();
 }
 
 updateExpires();
