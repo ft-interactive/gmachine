@@ -9,7 +9,7 @@ var express = require('express'),
 
 program
   .version('0.0.1')
-  .option('-p, --port <n>', 'Set the port number', parseInt, 3000)
+  .option('-p, --port <n>', 'Set the port number', parseInt, process.env.PORT || 3000)
   .parse(process.argv);
 
 var startTime = Date.now(),
