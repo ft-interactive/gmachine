@@ -3,6 +3,9 @@ gMachine
 
 A node app to grab images from the internet and resize, crop and compress them. Uses GraphicsMagick (default) or Imagemagick.
 
+Installation
+------------
+
 __Install using GraphicsMagick__
 
     $ brew install graphicsmagick
@@ -13,6 +16,9 @@ __Install using ImageMagick__
 	$ brew install imagemagick
 	$ node app.js --port 8080 --imagemagick
 	
+
+Usage
+-----
 
 __Call the service like this__
 
@@ -26,18 +32,26 @@ The following URL will get the image at http://etc/etc/image.jpg
 	
 and will crop a 100px x 100px square at coordinates x=250px, y=150px. The cropped image will then be resized to 200px x 400px.
 
-Crop is an optional param. To crop without resizing, set the the resize dimensions to 0.
+`crop` is an optional param. To crop without resizing, set the the resize dimensions to 0.
 
-__Options__
+Add an `m` param with any value to retain Exif. All metadata is removed by default.
+
+
+Start-up Options
+-----------------
 
 * `-p --port` Set the port number. Defaults to 3000. On Heroku the port will be entered via `process.env.PORT`
 * `-i --imagemagick` Use ImageMagick instead GraphicsMagick
 
-__Heroku__
+
+Deploying to Heroku
+-------------------
 
 To deploy to heroku copy and pastet the following into a terminal 
 
 	$ git clone https://github.com/ft-interactive/gmachine.git; cd gmachine; heroku create; git push heroku master
+
+-------------------------
 
 __TODO__
 
