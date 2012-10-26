@@ -13,7 +13,8 @@ program
   .parse(process.argv);
 
 var startTime = Date.now(),
-	tmpDir = 'tmp/' + program.port + '-' + startTime;
+	tmpDir = 'tmp/' + program.port + '-' + startTime,
+	imagesToDelete = [];
 
 try{
 	fs.mkdirSync('tmp', 0755);
@@ -26,6 +27,24 @@ try{
 }catch(e){
 
 }
+
+function deleteFile( filename ) {
+	fs.unlink( filename, function ( err ) {
+		if ( err ) return; 
+		
+		process.stdout.write('Deleted temporary image ' + filename + '\n');
+	});
+}
+
+setInterval(function(){
+
+	var queue = imagesToDelete;
+
+	imagesToDelete = [];
+
+	queue.forEach( deleteFile );
+
+}, 20000);
 
 app.get('/:width/:height', function(req, res){
 
@@ -45,18 +64,9 @@ app.get('/:width/:height', function(req, res){
 		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
 			if (stdout) {
 				res.type('jpeg');
-				stdout.on('close', function(){
-					setTimeout(function(){
-						fs.unlink(tmpFileName, function (err) {
-							if (!err) {
-								console.log('successfully deleted ' + tmpFileName);
-							} else {
-								throw err;
-							}
-						});
-					},10000);
+				stdout.on( 'close', function(){
+					imagesToDelete.push( tmpFileName );
 				});
-
 				stdout.pipe(res);
 			}
 		});
