@@ -1,117 +1,124 @@
 #!/usr/bin/env node
 
 var express = require('express'),
-	app = express(),
-	fs = require('fs'),
-	gm = require('gm'),
-	request = require('request'),
-	program = require('commander');
+    app = express(),
+    fs = require('fs'),
+    gm = require('gm'),
+    request = require('request'),
+    program = require('commander');
 
 program
   .version('0.0.1')
-  .option('-p, --port <n>', 'Set the port number', parseInt, process.env.PORT || 3000 )
-  .option('-i --imagemagick', 'Use Imagemagick instead of Graphicsmagick', process.env.IMAGEMAGICK || false )
+  .option('-p, --port <n>', 'Set the port number', parseInt, process.env.PORT || 3000)
+  .option('-i --imagemagick', 'Use Imagemagick instead of Graphicsmagick', process.env.IMAGEMAGICK || false)
   .parse(process.argv);
 
 var engine = program.imagemagick ? gm.subClass({ imageMagick: true }) : gm,
-	startTime = Date.now(),
-	tmpDir = 'tmp/' + program.port + '-' + startTime,
-	imagesToDelete = [],
-	expires,
-	lastModified = new Date('Jan 01, 2012');
+    startTime = Date.now(),
+    tmpDir = 'tmp/' + program.port + '-' + startTime,
+    imagesToDelete = [],
+    expires,
+    lastModified = new Date('Jan 01, 2012');
 
 try{
-	fs.mkdirSync( 'tmp', 0755 );
+  fs.mkdirSync('tmp', 0755);
 }catch(e){
-	process.stderr.write( 'Error creating top-level tmp directory\n' );
+  process.stderr.write('Error creating top-level tmp directory\n');
 }
 
 try{
-	fs.mkdirSync( tmpDir, 0755 );
-	process.on('exit', cleanUpOnShutDown);
-	process.on('SIGTERM', cleanUpOnShutDown);
+  fs.mkdirSync( tmpDir, 0755 );
+  process.on('exit', cleanUpOnShutDown);
+  process.on('SIGTERM', cleanUpOnShutDown);
 }catch(e){
-	process.stderr.write( 'Error creating app instance tmp directory\n' );
+  process.stderr.write('Error creating app instance tmp directory\n');
 }
 
-app.get('/:width/:height', function(req, res){
+app.get('/:width/:height', function (req, res) {
 
-	var params = req.params,
-		query = req.query,
-		tmpFileName = [tmpDir,'/', getRandomFileName(), '.jpg'].join( '' );
+  var params = req.params,
+      query = req.query,
+      tmpFileName = [tmpDir,'/', getRandomFileName(), '.jpg'].join('');
 
-	request( req.query.url ).pipe(fs.createWriteStream(tmpFileName).on('close', function(){
+  request(req.query.url).pipe(fs.createWriteStream(tmpFileName).on('close', function () {
 
-		var quality = query.cm === undefined || isNaN(parseInt(query.cm)) ?  80 : parseInt(query.cm);
-		var img = engine(fs.createReadStream(tmpFileName)).quality( quality );
+    var quality = query.cm === undefined || isNaN(parseInt(query.cm)) ?  80 : parseInt(query.cm),
+        img = engine(fs.createReadStream(tmpFileName)).quality( quality );
 
-		if ( query.m === undefined ) {
-			img.noProfile();
-		}
+    if (query.m === undefined) {
+      img.noProfile();
+    }
 
+    if (query.crop) {
+      var cropVals = query.crop.split(',');
+      img.crop(cropVals[0], cropVals[1], cropVals[2], cropVals[3]);
+    }
 
+    img.resize(params.height, params.height).stream(function(err, stdout, stderr){
 
-		if ( query.crop ) {
-			var cropVals = query.crop.split(',');
-			img.crop(cropVals[0], cropVals[1], cropVals[2], cropVals[3]);
-		}
+      res.type('jpeg');
 
-		img.resize(params.height, params.height).stream(function(err, stdout, stderr){
-			res.type('jpeg');
-			res.set({
-					'Expires': expires,
-					'Cache-Control': 'public, max-age=31536000',
-					'Last-Modified': lastModified.toUTCString()
-				});
-			stdout.on( 'close', function(){
-				imagesToDelete.push( tmpFileName );
-			});
-			stdout.pipe(res);
-		});
-	}));
+      res.set({
+        'Expires': expires,
+        'Cache-Control': 'public, max-age=31536000',
+        'Last-Modified': lastModified.toUTCString()
+      });
+
+      stdout.on( 'close', function(){
+        imagesToDelete.push(tmpFileName);
+      });
+
+      stdout.pipe(res);
+    });
+
+  }));
+
 });
 
 function getRandomFileName() {
-	return Math.floor(Math.random(100) * 10000).toString() + Date.now().toString();
+  return Math.floor(Math.random(100) * 10000).toString() + Date.now().toString();
 }
 
 function updateExpires() {
-	// 1 year. More than that much in the future and it violates the RFC guidelines
-	expires = new Date(Date.now() + 31536000000 ).toUTCString();
+  // 1 year. More than that much in the future and it violates the RFC guidelines
+  expires = new Date(Date.now() + 31536000000).toUTCString();
 }
 
 updateExpires();
 
 setInterval(updateExpires(), 3600000 /* every hour */);
 
-function deleteFile( filename ) {
-	fs.unlink( filename, function ( err ) {
-		if ( err ) {
-			process.stderr.write( 'Error deleting temporary image ' + filename + '\n' );
-			console.log(err);
-			return;
-		}
-		
-		process.stdout.write('Deleted temporary image ' + filename + '\n');
-	});
+function deleteFile(filename) {
+
+  fs.unlink( filename, function (err) {
+
+    if (err) {
+      process.stderr.write( 'Error deleting temporary image ' + filename + '\n');
+      console.log(err);
+      return;
+    }
+
+    process.stdout.write('Deleted temporary image ' + filename + '\n');
+
+  });
+
 }
 
-function cleanUpOnShutDown(){
-	fs.rmdirSync( tmpDir );
+function cleanUpOnShutDown() {
+  fs.rmdirSync(tmpDir);
 }
 
-setInterval(function(){
+setInterval(function () {
+  var queue = imagesToDelete;
 
-	var queue = imagesToDelete;
+  imagesToDelete = [];
 
-	imagesToDelete = [];
-
-	queue.forEach( deleteFile );
+  queue.forEach(deleteFile);
 
 }, 30000);
 
 app.enable('trust proxy');
-app.listen( program.port );
+app.listen(program.port);
 
 /* 
 
